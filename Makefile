@@ -4,19 +4,20 @@ RPMS =  build/RPMS/noarch/http-server-${VERSION}-1.x86_64.rpm
 CFLAGS = -std=gnu99 -fPIC -levent
 LDFLAGS = -shared 
 
-all : http-server.so http-server index.html
+all : http-server.so http-server index.html libevent-2.0.so.5
 
+# Make a standalone HTML5 version of the README
 index.html : README.md
-	pandoc $< -o $@
+	pandoc -s --to=html5 $< -o $@
 
 libevent-2.0.so.5 :
 	cp /lib64/$@ .
 
-http-server.so : http-server.c libevent-2.0.so.5
-	$(CC) -o $@ $(CFLAGS) $(LDFLAGS) $^
+http-server.so : http-server.c
+	$(CC) -o $@ -std=gnu99 -fPIC -shared -levent $^
 
 http-server : http-server.c
-	$(CC) -o $@ $(CFLAGS) $^
+	$(CC) -o $@ -std=gnu99 -fPIC -levent $^
 
 rpm : ${RPMS}
 
@@ -43,6 +44,6 @@ pre-commit :
 clean :
 	rm -rf build
 	rm -f index.html
-	rm -f http-server.so http-server.o http-server libevent-2.0.so.5
+	rm -f http-server.so http-server.o http-server
 
 .PHONY : all clean hooks install rpm
