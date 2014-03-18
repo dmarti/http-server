@@ -42,7 +42,7 @@ pre-commit :
 
 clean :
 	rm -rf build
-	rm index.html
+	rm -f index.html
 	rm -f http-server.so http-server.o http-server libevent-2.0.so.5
 
 .PHONY : all clean hooks install rpm
