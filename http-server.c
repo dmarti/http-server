@@ -73,52 +73,6 @@ not_found:
 	return "text/plain";
 }
 
-/* Callback used for the /dump URI, and for every non-GET request:
- * dumps all information to stdout and gives back a trivial 200 ok */
-static void
-dump_request_cb(struct evhttp_request *req, void *arg)
-{
-	const char *cmdtype;
-	struct evkeyvalq *headers;
-	struct evkeyval *header;
-	struct evbuffer *buf;
-
-	switch (evhttp_request_get_command(req)) {
-	case EVHTTP_REQ_GET: cmdtype = "GET"; break;
-	case EVHTTP_REQ_POST: cmdtype = "POST"; break;
-	case EVHTTP_REQ_HEAD: cmdtype = "HEAD"; break;
-	case EVHTTP_REQ_PUT: cmdtype = "PUT"; break;
-	case EVHTTP_REQ_DELETE: cmdtype = "DELETE"; break;
-	case EVHTTP_REQ_OPTIONS: cmdtype = "OPTIONS"; break;
-	case EVHTTP_REQ_TRACE: cmdtype = "TRACE"; break;
-	case EVHTTP_REQ_CONNECT: cmdtype = "CONNECT"; break;
-	case EVHTTP_REQ_PATCH: cmdtype = "PATCH"; break;
-	default: cmdtype = "unknown"; break;
-	}
-
-	printf("Received a %s request for %s\nHeaders:\n",
-	    cmdtype, evhttp_request_get_uri(req));
-
-	headers = evhttp_request_get_input_headers(req);
-	for (header = headers->tqh_first; header;
-	    header = header->next.tqe_next) {
-		printf("  %s: %s\n", header->key, header->value);
-	}
-
-	buf = evhttp_request_get_input_buffer(req);
-	puts("Input data: <<<");
-	while (evbuffer_get_length(buf)) {
-		int n;
-		char cbuf[128];
-		n = evbuffer_remove(buf, cbuf, sizeof(cbuf));
-		if (n > 0)
-			(void) fwrite(cbuf, 1, n, stdout);
-	}
-	puts(">>>");
-
-	evhttp_send_reply(req, 200, "OK", NULL);
-}
-
 /* This callback gets invoked when we get any http request that doesn't match
  * any other callback.  Like any evhttp server callback, it has a simple job:
  * it must eventually call evhttp_send_error() or evhttp_send_reply().
@@ -139,16 +93,17 @@ send_document_cb(struct evhttp_request *req, void *arg)
 	struct stat st;
 
 	if (evhttp_request_get_command(req) != EVHTTP_REQ_GET) {
-		dump_request_cb(req, arg);
+		printf("Non-GET request. Sending BADREQUEST\n");
+		evhttp_send_error(req, HTTP_BADREQUEST, 0);
 		return;
 	}
 
-	printf("Got a GET request for <%s>\n",  uri);
+	printf("GET %s\n",  uri);
 
 	/* Decode the URI */
 	decoded = evhttp_uri_parse(uri);
 	if (!decoded) {
-		printf("It's not a good URI. Sending BADREQUEST\n");
+		printf("Failed to decode URI. Sending BADREQUEST\n");
 		evhttp_send_error(req, HTTP_BADREQUEST, 0);
 		return;
 	}
@@ -183,15 +138,12 @@ send_document_cb(struct evhttp_request *req, void *arg)
 	/* This holds the content we're sending. */
 	evb = evbuffer_new();
 
+	/* If it's a directory, read the index.html file */
 	if (S_ISDIR(st.st_mode)) {
-		/* If it's a directory, read the index.html file */
 		DIR *d;
 		struct dirent *ent;
-
 		type = "text/html";
-		printf("whole path: %s\n", whole_path);
 		whole_path = strcat(whole_path, "index.html");
-		printf("whole path: %s\n", whole_path);
 	} else {
 		type = guess_content_type(decoded_path);
 	}
@@ -213,7 +165,7 @@ send_document_cb(struct evhttp_request *req, void *arg)
 	evhttp_send_reply(req, 200, "OK", evb);
 	goto done;
 err:
-	evhttp_send_error(req, 404, "Document was not found");
+	evhttp_send_error(req, 404, "Not Found");
 	if (fd>=0)
 		close(fd);
 done:
@@ -261,11 +213,7 @@ main(int argc, char **argv)
 		return 1;
 	}
 
-	/* The /dump URI will dump all requests to stdout and say 200 ok. */
-	evhttp_set_cb(http, "/dump", dump_request_cb, NULL);
-
-	/* We want to accept arbitrary requests, so we need to set a "generic"
-	 * cb.  We can also add callbacks for specific paths. */
+	/* Set up the callback. */	
 	evhttp_set_gencb(http, send_document_cb, argv[1]);
 
 	/* Now we tell the evhttp what port to listen on */
