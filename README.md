@@ -18,6 +18,8 @@ Just to keep it simple, let's borrow the short HTTP server example from [libeven
 
 Best of all, libevent includes an easy-to-use HTTP implementation and sample code for using it.  So I'll copy their web server sample code, tweak it a little to make the web server I need, and set up a simple Makefile.
 
+You'll need the development package for libevent installed.  On my system, it's called `libevent-devel`.
+
 Here's the target to pay attention to:
 
 ```
@@ -27,7 +29,7 @@ http-server.so : http-server.c
 
 Yes, that's right, we're using `-fPIC` (position independent code) and `-shared` (passed to the linker, make it build a shared library).  And `http-server.c` has a function called `main`.  What's going on?  This is because of the way OSv works.  Your application on OSv isn't a conventional ELF executable, but a .so file.
 
-Besides building the actual HTTP server, I'll also put in a Make target to create the HTML version of this article from the README, [because I can](https://lwn.net/Articles/589196/).  So I type `make` and I build the web content and the web server.
+Besides building the actual HTTP server, I'll also put in a Make target to create the HTML version of this article from the README, [because I can](https://lwn.net/Articles/589196/).  So I type `make` to build the web content and the web server.
 
 Of course you can expand on this to build as complicated of an application and data set as you want.  This is just an example to show you Capstan for now.
 
@@ -38,8 +40,8 @@ Now it's time to tell Capstan how to create the virtual machine image.  Building
 Easy so far.  Now for the `cmdline` option, which is like [Docker's CMD](http://docs.docker.io/en/v0.6.3/use/builder/#cmd): the command that gets run when the image starts.  The HTTP server just takes its DocumentRoot entry from the command line, so the command comes out as:
 
 ```
-cmdline: /tools/http-server.so/www
-````
+cmdline: /tools/http-server.so /www
+```
 
 There's one more section in the Capstanfile: `base`.  That's a pre-built OSv image, currently hosted in Capstan author [Pekka Enberg's GitHub account](https://github.com/penberg).  (Yes, OSv is so streamlined that an entire VM image will fit in under the [GitHub file size limit](https://github.com/blog/1533-new-file-size-limits), with room to spare.)
 
@@ -48,10 +50,12 @@ There's one more section in the Capstanfile: `base`.  That's a pre-built OSv ima
 Now, when we type `capstan build`, Capstan invokes `make`, then creates the VM image.  It lives under `.capstan` in your home directory, at:
 
 ```
-.capstan/repository/http-server/http-server
+.capstan/repository/http-server/http-server.qemu
 ```
 
-There's no file extension, but it's a QCOW2 image, ready to run under KVM or convert to your favorite format.  That's it.  Told you it was simple.
+This is a QCOW2 image, ready to run under KVM or convert to your favorite format.  That's it.  Told you it was simple.  You can just do `capstan run` and point your browser to [http://localhost:8080/](http://localhost:8080/) to see the site.
+
+In an upcoming blog post, I'll cover the recently added VirtualBox support in Capstan (hint: trry `-p vbox`) and some other fun things you can do.
 
 If you have any Capstan questions, please join the [osv-dev mailing list on Google Groups](https://groups.google.com/forum/#!forum/osv-dev).  You can get updates on new OSv and Capstan progress by subscribing to this blog or folllowing [@CloudiusSystems](https://twitter.com/CloudiusSystems) on Twitter.
 
