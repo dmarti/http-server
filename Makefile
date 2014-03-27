@@ -17,7 +17,7 @@ http-server.so : http-server.c
 	$(CC) -o $@ -std=gnu99 -fPIC -shared -levent $^
 
 http-server : http-server.c
-	$(CC) -o $@ -std=gnu99 -fPIC -levent $^
+	$(CC) -o $@ -std=gnu99 -levent $^
 
 rpm : ${RPMS}
 
@@ -44,6 +44,7 @@ pre-commit :
 clean :
 	rm -rf build
 	rm -f index.html
+	rm -f libevent-2.0.so.5
 	rm -f http-server.so http-server.o http-server
 
 .PHONY : all clean hooks install rpm
