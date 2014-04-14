@@ -5,14 +5,13 @@
 
 #
 # Name of the base image.  Capstan will download this automatically from
-# Github.
+# the Cloudius S3 repository.
 #
-base: penberg/osv-base
+base: cloudius/osv-base
 
 #
 # The command line passed to OSv to start up the application.
-# The HTTP server example takes one argument, the
-# document root.
+# The HTTP server example takes one argument, the # document root.
 #
 cmdline: /tools/http-server.so /www
 
