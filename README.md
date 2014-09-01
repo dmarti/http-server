@@ -55,7 +55,7 @@ Now, when we type `capstan build`, Capstan invokes `make`, then creates the VM i
 
 This is a QCOW2 image, ready to run under KVM or convert to your favorite format.  That's it.  Told you it was simple.  You can just do `capstan run` and point your browser to [http://localhost:8080/](http://localhost:8080/) to see the site.
 
-In an upcoming blog post, I'll cover the recently added VirtualBox support in Capstan (hint: trry `-p vbox`) and some other fun things you can do.
+In an upcoming blog post, I'll cover the recently added VirtualBox support in Capstan (hint: try `-p vbox`) and some other fun things you can do.
 
 If you have any Capstan questions, please join the [osv-dev mailing list on Google Groups](https://groups.google.com/forum/#!forum/osv-dev).  You can get updates on new OSv and Capstan progress by subscribing to this blog or folllowing [@CloudiusSystems](https://twitter.com/CloudiusSystems) on Twitter.
 
