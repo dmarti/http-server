@@ -53,7 +53,7 @@ Now, when we type `capstan build`, Capstan invokes `make`, then creates the VM i
 .capstan/repository/http-server/http-server.qemu
 ```
 
-This is a QCOW2 image, ready to run under KVM or convert to your favorite format.  That's it.  Told you it was simple.  You can just do `capstan run` and point your browser to [http://localhost:8080/](http://localhost:8080/) to see the site.
+This is a QCOW2 image, ready to run under KVM or convert to your favorite format.  That's it.  Told you it was simple.  You can just do `capstan run -f 8080:8080` and point your browser to [http://localhost:8080/](http://localhost:8080/) to see the site.
 
 In an upcoming blog post, I'll cover the recently added VirtualBox support in Capstan (hint: try `-p vbox`) and some other fun things you can do.
 
